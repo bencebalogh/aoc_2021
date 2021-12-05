@@ -10,24 +10,17 @@ part2() ->
 p(Coords) ->
     length(lists:filter(fun (X) -> X >= 2 end, maps:values(lists:foldl(fun (L, Grid) ->
         lists:foldl(fun (Coord, G) -> maps:put(Coord, maps:get(Coord, G, 0) + 1, G) end, Grid, L)
-    end, maps:new(), lists:map(fun calculate_line/1, Coords))))).
+    end, maps:new(), lists:map(fun points_between/1, Coords))))).
 
-calculate_line({{X, FromY}, {X, ToY}}) ->
-    lists:map(fun (Y) -> {X, Y} end, lists:seq(min(FromY, ToY), max(FromY, ToY)));
-calculate_line({{FromX, Y}, {ToX, Y}}) ->
-    lists:map(fun (X) -> {X, Y} end, lists:seq(min(ToX, FromX), max(ToX, FromX)));
-calculate_line({From, To}) ->
-    diagonal(From, To, [From]).
+points_between({{Xa, Ya}, {Xb, Yb}}) ->
+   Dx = signum(Xb - Xa), 
+   Dy = signum(Yb - Ya),
+   Steps = max((Xb - Xa) * Dx, (Yb - Ya) * Dy),
+   lists:map(fun (Step) -> {Step * Dx + Xa, Step * Dy + Ya} end, lists:seq(0, Steps)).
 
-diagonal(To, To, Agg) -> Agg;
-diagonal({Xa, Ya}, {Xb, Yb} = From, Agg) when (Xb > Xa) and (Yb > Ya) ->
-    diagonal({Xa + 1, Ya + 1}, From, [{Xa + 1, Ya + 1} | Agg]);
-diagonal({Xa, Ya}, {Xb, Yb} = From, Agg) when (Xb < Xa) and (Yb < Ya) ->
-    diagonal({Xa - 1, Ya - 1}, From, [{Xa - 1, Ya - 1} | Agg]);
-diagonal({Xa, Ya}, {Xb, Yb} = From, Agg) when (Xb < Xa) and (Yb > Ya) ->
-    diagonal({Xa - 1, Ya + 1}, From, [{Xa - 1, Ya + 1} | Agg]);
-diagonal({Xa, Ya}, {Xb, Yb} = From, Agg) when (Xb > Xa) and (Yb < Ya) ->
-    diagonal({Xa + 1, Ya - 1}, From, [{Xa + 1, Ya - 1} | Agg]).
+signum(V) when V > 0 -> 1;
+signum(V) when V < 0 -> -1;
+signum(_) -> 0.
 
 input() ->
     {ok, I} = file:read_file(input),
